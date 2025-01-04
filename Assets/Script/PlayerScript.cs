@@ -4,7 +4,14 @@ using UnityEngine;
 
 public class PlayerScript : MonoBehaviour
 {
+    [SerializeField] 
+
+    float PlayerHealth = 100f;
+    int attackRange = 5;
+    public LayerMask EnemyMask;
     float dirX;
+
+    bool CanAttack = true;
     bool isDead= false;
     float moveSpeed = 5f;
     Animator animator;
@@ -16,18 +23,57 @@ public class PlayerScript : MonoBehaviour
        rb= GetComponent<Rigidbody2D>(); 
        localScale = transform.localScale;
        animator = GetComponent<Animator>();
+        // vector3 StartPos = transform.pos;
     }
 
+    IEnumerator DelayAttack()
+    {
+        yield return new WaitForSeconds(0.5f);
+        animator.SetBool("IsAttack",false);
+        yield return new WaitForSeconds(0.5f);
+        CanAttack= true;
+
+    }
+    // public void Die()
+    // {
+    //    Debug.log("you die") ;
+    // }
     // Update is called once per frame
+    public void TakeDamage(float damage)
+    {
+        PlayerHealth -= damage;
+        // if (PlayerHealth <= 0)
+        // {
+        //     animator.SetTrigger("IsDie",true);
+        //     Die();
+        // }
+    }
+
+    public void Attack()
+    {
+        CanAttack = false;
+        animator.SetBool("IsAttack",true);
+        StartCoroutine(DelayAttack());
+        Vector3 pos = transform.position;
+        Collider2D colInfo = Physics2D.OverlapCircle(pos, attackRange, EnemyMask);
+        if (colInfo != null)
+        {
+         colInfo.GetComponent<BossScript>().TakeDamage(20f);
+        }
+    }
+
     void Update()
     {
+        if (Input.GetButtonDown("Jump") && Mathf.Abs(rb.velocity.y) < 0.1)
+            rb.AddForce(Vector2.up * 100f);
+        if (Input.GetKey(KeyCode.Mouse0) && (CanAttack == true))
+            Attack();
         if (Input.GetKey(KeyCode.LeftShift))
             moveSpeed = 6f;
         else
             moveSpeed = 3f;
 
-        if (Input.GetButtonDown("Jump") && Mathf.Abs(rb.velocity.y) < 0.1)
-            rb.AddForce(Vector2.up * 1000f);
+
         if (isDead == false)
         {
             dirX = Input.GetAxisRaw("Horizontal") * moveSpeed;
@@ -36,7 +82,7 @@ public class PlayerScript : MonoBehaviour
     }
     void FixedUpdate()
     {
-        rb.velocity = new Vector2(dirX,0);
+        rb.velocity = new Vector2(dirX,rb.velocity.y);
         if ((dirX>0 && localScale.x<0) || (dirX<0 && localScale.x>0))
             localScale.x *= -1;
         transform.localScale = localScale;
@@ -44,7 +90,6 @@ public class PlayerScript : MonoBehaviour
     }
     void SetAnimationState()
     {
-        Debug.Log(dirX);
         if (dirX == 0)
             animator.SetBool("IsWalk",false);
             animator.SetBool("IsRun",false);
@@ -61,25 +106,6 @@ public class PlayerScript : MonoBehaviour
         {
             animator.SetBool("IsRun",true);
         }
-         if (Input.GetMouseButtonDown(0))
-         {
-            animator.SetBool("IsAttack",true);
-            WaitForSeconds(1);
-         }
-         else 
-         (
-            if (!Input.GetMouseButtonDown(0))
-            animator.SetBool("IsAttack",false);
-         )
-            
-         
-
-
-
-    
-            
-        
-
     }
     
 
