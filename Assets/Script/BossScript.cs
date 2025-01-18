@@ -1,13 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BossScript : MonoBehaviour
 {
     public Transform Player;
-
+    public Slider slider;
     [SerializeField] 
-    float BossHealth = 10000f;
+    float BossHealth = 500f;
 
     public LayerMask PlayerMask;
 
@@ -24,7 +25,9 @@ public class BossScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        rb= GetComponent<Rigidbody2D>();
+        slider.maxValue = BossHealth;
+        slider.value = BossHealth;
+        rb = GetComponent<Rigidbody2D>();
         localScale = transform.localScale;
         animator = GetComponent<Animator>();
     }
@@ -38,10 +41,15 @@ public class BossScript : MonoBehaviour
         CanAttack= true;
 
     }
+    public void SetHealth(float health)
+    {
+        slider.value = health;
+    }
 
     public void TakeDamage(float damage)
     {
         BossHealth -= damage;
+        SetHealth(BossHealth);
     }
     public void Attack()
     {

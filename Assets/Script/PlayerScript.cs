@@ -8,7 +8,7 @@ public class PlayerScript : MonoBehaviour
     [SerializeField] 
 
     float PlayerHealth = 100f;
-    int attackRange = 5;
+    int attackRange = 6;
     public LayerMask EnemyMask;
     float dirX;
     Vector2 Pos;
@@ -47,12 +47,13 @@ public class PlayerScript : MonoBehaviour
     public void TakeDamage(float damage)
     {
         PlayerHealth -= damage;
-        if (PlayerHealth <= 0)
-        {
-            animator.SetTrigger("Die");
+        SetHealth(PlayerHealth);
+        //if (PlayerHealth <= 0)
+        //{
+        //    animator.SetTrigger("Die");
 
 
-        }
+        //}
 
 
     }
@@ -75,7 +76,7 @@ public class PlayerScript : MonoBehaviour
 
     void Update()
     {
-        SetHealth(PlayerHealth);
+        
         if (Input.GetButtonDown("Jump") && Mathf.Abs(rb.velocity.y) < 0.1)
             rb.AddForce(Vector2.up * 100f);
         if (Input.GetKey(KeyCode.Mouse0) && (CanAttack == true))
