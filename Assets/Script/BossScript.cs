@@ -16,7 +16,6 @@ public class BossScript : MonoBehaviour
 
 
 
-    float moveSpeed = 5f;
     bool CanAttack = true;
     Animator animator;
     Vector3 localScale;

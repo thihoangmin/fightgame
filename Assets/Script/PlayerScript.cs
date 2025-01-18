@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerScript : MonoBehaviour
 {
@@ -10,21 +11,25 @@ public class PlayerScript : MonoBehaviour
     int attackRange = 5;
     public LayerMask EnemyMask;
     float dirX;
-
+    Vector2 Pos;
     bool CanAttack = true;
     bool isDead= false;
     float moveSpeed = 5f;
+    public Slider slider;
     Animator animator;
     Rigidbody2D rb;
     Vector3 localScale;
     // Start is called before the first frame update
     void Start()
     {
+       slider.maxValue = PlayerHealth;
+       Pos= transform.position;
        rb= GetComponent<Rigidbody2D>(); 
        localScale = transform.localScale;
        animator = GetComponent<Animator>();
         // vector3 StartPos = transform.pos;
     }
+
 
     IEnumerator DelayAttack()
     {
@@ -42,13 +47,19 @@ public class PlayerScript : MonoBehaviour
     public void TakeDamage(float damage)
     {
         PlayerHealth -= damage;
-        // if (PlayerHealth <= 0)
-        // {
-        //     animator.SetTrigger("IsDie",true);
-        //     Die();
-        // }
-    }
+        if (PlayerHealth <= 0)
+        {
+            animator.SetTrigger("Die");
 
+
+        }
+
+
+    }
+    public void SetHealth(float health)
+    {
+        slider.value = health;
+    }
     public void Attack()
     {
         CanAttack = false;
@@ -64,6 +75,7 @@ public class PlayerScript : MonoBehaviour
 
     void Update()
     {
+        SetHealth(PlayerHealth);
         if (Input.GetButtonDown("Jump") && Mathf.Abs(rb.velocity.y) < 0.1)
             rb.AddForce(Vector2.up * 100f);
         if (Input.GetKey(KeyCode.Mouse0) && (CanAttack == true))
