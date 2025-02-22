@@ -5,10 +5,13 @@ using UnityEngine.UI;
 
 public class PlayerScript : MonoBehaviour
 {
-    [SerializeField] 
+    public float PlayerHealth = 100f;
+    [SerializeField]
+    public AudioSource WalkAudioSource;
+    public AudioSource AttackAudioSource;
+    public AudioClip AudioClip;
 
-    float PlayerHealth = 100f;
-    int attackRange = 6;
+    int attackRange = 3;
     public LayerMask EnemyMask;
     float dirX;
     Vector2 Pos;
@@ -18,6 +21,8 @@ public class PlayerScript : MonoBehaviour
     public Slider slider;
     Animator animator;
     Rigidbody2D rb;
+    public Animator BossAnimator;
+  
     Vector3 localScale;
     // Start is called before the first frame update
     void Start()
@@ -27,6 +32,10 @@ public class PlayerScript : MonoBehaviour
        rb= GetComponent<Rigidbody2D>(); 
        localScale = transform.localScale;
        animator = GetComponent<Animator>();
+       animator.SetBool("IsHurt", false);
+
+        WalkAudioSource = GetComponent<AudioSource>();
+
         // vector3 StartPos = transform.pos;
     }
 
@@ -39,21 +48,50 @@ public class PlayerScript : MonoBehaviour
         CanAttack= true;
 
     }
-    // public void Die()
-    // {
-    //    Debug.log("you die") ;
-    // }
+    IEnumerator DelayHurt(float tim)
+    {
+        animator.SetBool("IsHurt", true);
+        yield return new WaitForSeconds(tim);
+        animator.SetBool("IsHurt", false);
+
+
+    }
+    IEnumerator DelayDie(float tim)
+    {
+        animator.SetBool("IsDie",true);
+        Debug.Log("Set true");
+        yield return new WaitForSeconds(2.0f);
+        transform.position = Pos;
+        animator.SetBool("IsDie", false);
+        Restart();
+    }
+    public void Restart()
+    {
+        isDead = false;
+        PlayerHealth = 100;
+        SetHealth(PlayerHealth);
+       
+
+
+
+    }
     // Update is called once per frame
     public void TakeDamage(float damage)
     {
         PlayerHealth -= damage;
         SetHealth(PlayerHealth);
-        //if (PlayerHealth <= 0)
-        //{
-        //    animator.SetTrigger("Die");
+        if (PlayerHealth <= 0)
+        {
+            if (!isDead)
+                isDead = true;
+                StartCoroutine(DelayDie(0.1f));
+        }
+        else
+        {
+            StartCoroutine(DelayHurt(0.1f));
 
+        }
 
-        //}
 
 
     }
@@ -63,6 +101,12 @@ public class PlayerScript : MonoBehaviour
     }
     public void Attack()
     {
+        if (!(AttackAudioSource.isPlaying))
+        {
+                AttackAudioSource.volume = Random.Range(0.8f,1.0f);
+                AttackAudioSource.pitch = Random.Range(0.8f, 2.0f);
+                AttackAudioSource.Play();
+        }
         CanAttack = false;
         animator.SetBool("IsAttack",true);
         StartCoroutine(DelayAttack());
@@ -76,7 +120,8 @@ public class PlayerScript : MonoBehaviour
 
     void Update()
     {
-        
+        if (rb.velocity.x == 0)
+            WalkAudioSource.Stop();
         if (Input.GetButtonDown("Jump") && Mathf.Abs(rb.velocity.y) < 0.1)
             rb.AddForce(Vector2.up * 100f);
         if (Input.GetKey(KeyCode.Mouse0) && (CanAttack == true))
@@ -89,9 +134,15 @@ public class PlayerScript : MonoBehaviour
 
         if (isDead == false)
         {
+            animator.SetBool("IsIdle", true);
             dirX = Input.GetAxisRaw("Horizontal") * moveSpeed;
         }
-        SetAnimationState();
+        else
+        {
+            
+        }
+        if (PlayerHealth> 0)
+            SetAnimationState();
     }
     void FixedUpdate()
     {
@@ -104,17 +155,23 @@ public class PlayerScript : MonoBehaviour
     void SetAnimationState()
     {
         if (dirX == 0)
-            animator.SetBool("IsWalk",false);
-            animator.SetBool("IsRun",false);
+            animator.SetBool("IsWalk", false);
+        animator.SetBool("IsRun", false);
         if (Mathf.Abs(rb.velocity.y) < 0.1)
-            animator.SetBool("IsJump",false);
+            animator.SetBool("IsJump", false);
         else
-            animator.SetBool("IsJump",true);
+            animator.SetBool("IsJump", true);
         if ((Mathf.Abs(dirX) <= 5 && Mathf.Abs(dirX) > 0) && (Mathf.Abs(rb.velocity.y) < 0.1))
         {
-            animator.SetBool("IsWalk",true);
-        }
+            animator.SetBool("IsWalk", true);
+            if (!(WalkAudioSource.isPlaying))
+            {
 
+                WalkAudioSource.Play();
+
+
+            }
+        } 
         if ((Mathf.Abs(dirX) > 5) && (Mathf.Abs(rb.velocity.y) < 0.1))
         {
             animator.SetBool("IsRun",true);
@@ -122,4 +179,4 @@ public class PlayerScript : MonoBehaviour
     }
     
 
-}
+    }
